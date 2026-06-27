@@ -54,17 +54,16 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
 ~/dotfiles/
 ├── flake.nix              # inputs: nixpkgs, nix-darwin, home-manager (pinned 26.05)
 ├── flake.lock
+├── configuration.nix      # nix-darwin SYSTEM config (moved out of the old flake.nix)
+├── home.nix               # home-manager entry: imports home/*, home.packages (incl. just)
 ├── justfile               # switch / build / update / fmt / gc / rollback
 ├── .gitignore             # result, result-*, .DS_Store
 ├── docs/superpowers/specs/2026-06-27-declarative-dotfiles-home-manager-design.md
-└── modules/
-    ├── darwin.nix         # system config (moved out of the old flake.nix)
-    └── home/
-        ├── default.nix    # imports modules below; home.packages (incl. just); backup ext
-        ├── zsh.nix        # programs.zsh
-        ├── git.nix        # programs.git
-        ├── vim.nix        # programs.vim
-        └── neovim.nix     # programs.neovim (init.vim inline as extraConfig)
+└── home/
+    ├── git.nix            # programs.git
+    ├── zsh.nix            # programs.zsh
+    ├── vim.nix            # programs.vim
+    └── neovim.nix         # programs.neovim + nixpkgs-managed plugins (no vim-plug)
 ```
 
 ### Flake wiring
@@ -72,11 +71,11 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
   `nix-darwin` (`github:nix-darwin/nix-darwin/nix-darwin-26.05`, `follows` nixpkgs),
   `home-manager` (`github:nix-community/home-manager/release-26.05`, `follows` nixpkgs).
 - `darwinConfigurations."Yernars-MacBook-Air"` = `darwinSystem` with modules:
-  1. `./modules/darwin.nix`
+  1. `./configuration.nix`
   2. `home-manager.darwinModules.home-manager`
   3. inline: `home-manager.useGlobalPkgs = true; home-manager.useUserPackages = true;`
      `home-manager.backupFileExtension = "bak";`
-     `home-manager.users.yernar33 = import ./modules/home;`
+     `home-manager.users.yernar33 = import ./home.nix;`
 - Result: `darwin-rebuild switch` builds the system and activates the
   home-manager generation in one step. No separate `home-manager` command.
 
@@ -136,9 +135,13 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
 
 ## Open questions
 
-**nvim plugin management.** `init.vim` uses vim-plug (imperative `:PlugInstall`).
-To honor the "fully declarative, no install scripts" goal, the plan will manage
-its 6 plugins via nixpkgs `programs.neovim.plugins` and strip the `plug#begin/end`
-block. Confirm this vs. keeping vim-plug (imperative) or slimming nvim to
-settings-only. Everything else (repo location `~/dotfiles`, fully declarative
-native modules) is decided.
+**Resolved — none outstanding.**
+- **nvim plugins:** managed **fully declaratively** via nixpkgs
+  `programs.neovim.plugins` (vim-plug stripped) — the only choice consistent with
+  the no-install-scripts rule.
+- **System config file:** `configuration.nix` at the repo root (classic nix-darwin
+  name); home-manager config in `home.nix` + `home/`.
+- **Username/home centralization:** set `home.username` / `home.homeDirectory`
+  once; everything else derives from `config.home.homeDirectory` so a future
+  account rename is a one-line change.
+- Repo location `~/dotfiles`, fully declarative native modules — decided.
