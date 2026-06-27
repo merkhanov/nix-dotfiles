@@ -1,9 +1,8 @@
 # Declarative dotfiles via nix-darwin + home-manager
 
 **Date:** 2026-06-27
-**Status:** Approved (pending spec review). **Prerequisite:** macOS account rename
-`yernar33` → `yeuyan` must complete first; all paths/usernames below target `yeuyan`.
-**Repo:** `~/dotfiles` (`/Users/yeuyan/dotfiles`)
+**Status:** Approved (pending spec review)
+**Repo:** `~/dotfiles` (`/Users/yernar33/dotfiles`)
 **Host:** `Yernars-MacBook-Air` (aarch64-darwin)
 
 ## Goal
@@ -74,7 +73,7 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
   2. `home-manager.darwinModules.home-manager`
   3. inline: `home-manager.useGlobalPkgs = true; home-manager.useUserPackages = true;`
      `home-manager.backupFileExtension = "bak";`
-     `home-manager.users.yeuyan = import ./modules/home;`
+     `home-manager.users.yernar33 = import ./modules/home;`
 - Result: `darwin-rebuild switch` builds the system and activates the
   home-manager generation in one step. No separate `home-manager` command.
 
