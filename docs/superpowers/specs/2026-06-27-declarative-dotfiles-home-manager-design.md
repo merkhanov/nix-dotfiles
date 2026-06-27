@@ -39,7 +39,10 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
   - `~/.gitconfig` — user name/email + git-lfs filter. Trivial.
   - `~/.vimrc` — 8 settings (number, relativenumber, showmatch, incsearch,
     hlsearch, ignorecase, smartcase). Trivial.
-  - `~/.config/nvim/init.vim` — **Vimscript, no Lua, no plugin manager.** Trivial.
+  - `~/.config/nvim/init.vim` — Vimscript via **vim-plug** with 6 plugins
+    (nerdtree, nerdcommenter, vim-devicons, vim-airline, vim-airline-themes,
+    coc.nvim). NOT trivial — full declarativeness means managing these via
+    nixpkgs instead of vim-plug's runtime `:PlugInstall` (see Open questions).
   - `~/.zshrc` — PATH exports + sourcing tools (nvm, bun, `ng`/opencode/bun
     completions, Homebrew `zsh-autosuggestions`, an ai-autocomplete plugin in
     `~/Documents/GitHub`). Maps to `programs.zsh` + `sessionPath` + `initExtra`.
@@ -95,7 +98,7 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
 |---|---|
 | `~/.gitconfig` | `programs.git.enable`, `userName = "Yernar Merkhanov"`, `userEmail = "yernarmerkhanov@gmail.com"`, `lfs.enable = true` |
 | `~/.vimrc` | `programs.vim` — `settings`/`extraConfig` carrying the 8 options |
-| `~/.config/nvim/init.vim` | `programs.neovim.enable`, `extraConfig = <init.vim contents>`; `viAlias`/`vimAlias` optional |
+| `~/.config/nvim/init.vim` | `programs.neovim` — 6 plugins from nixpkgs `vimPlugins` (nerdtree, nerdcommenter, vim-devicons, vim-airline, vim-airline-themes, coc-nvim) replacing vim-plug; `withNodeJs = true` for coc.nvim; `extraConfig` = init.vim minus the `plug#begin/end` block. **Pending nvim decision — see Open questions.** |
 | `~/.zshrc` | `programs.zsh.enable`; `autosuggestion.enable = true` (replaces Homebrew `zsh-autosuggestions` source line); `home.sessionPath` for `~/.bun/bin`, `~/.local/bin`, `~/.antigravity*/bin`, `~/.opencode/bin`; `initExtra` for the remaining `source` lines (nvm, completions, ai-autocomplete plugin) |
 
 ## Migration & cutover
@@ -116,8 +119,10 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
   the `~/Documents/GitHub/ai-shell-autocompletion` plugin. v1 keeps `source`-ing
   them from `initExtra`. Future: nixify (`nvm` → `programs.zsh`/`nodejs`, etc.).
 - **Homebrew** is not adopted into Nix in v1 (no `nix-homebrew` module yet).
-- **nvim plugins:** none exist today, so nothing to port. If plugins are added
-  later, manage them via `programs.neovim.plugins` from nixpkgs to stay declarative.
+- **nvim — coc.nvim extensions** (e.g. coc-tsserver) are installed by coc at
+  runtime via `:CocInstall`; these stay coc-managed in v1 unless pinned via coc
+  settings. The 6 plugins themselves become nixpkgs-managed (declarative). A
+  **Nerd Font** is required for vim-airline/devicons glyphs (add via `fonts`).
 
 ## Success criteria
 
@@ -131,5 +136,9 @@ entire system — macOS config *and* dotfiles — reproducibly from this one git
 
 ## Open questions
 
-None outstanding. Repo location (`~/dotfiles`) and config style (fully declarative
-native modules) are decided.
+**nvim plugin management.** `init.vim` uses vim-plug (imperative `:PlugInstall`).
+To honor the "fully declarative, no install scripts" goal, the plan will manage
+its 6 plugins via nixpkgs `programs.neovim.plugins` and strip the `plug#begin/end`
+block. Confirm this vs. keeping vim-plug (imperative) or slimming nvim to
+settings-only. Everything else (repo location `~/dotfiles`, fully declarative
+native modules) is decided.
